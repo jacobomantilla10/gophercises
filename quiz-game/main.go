@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -44,7 +45,7 @@ func main() {
 	numRight := 0
 
 	for _, record := range records {
-		question, answer := record[0], record[1]
+		question, answer := strings.TrimSpace(record[0]), strings.TrimSpace(strings.ToLower(record[1]))
 
 		fmt.Fprintf(os.Stdout, "%s: ", question)
 
@@ -54,7 +55,7 @@ func main() {
 			var input string
 			fmt.Scanln(&input)
 
-			answerCh <-input
+			answerCh <-strings.ToLower(input)
 		}()
 
 		select {
