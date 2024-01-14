@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -11,6 +12,7 @@ import (
 func main() {
 	filenameFlag := flag.String("filename", "problems.csv", "Name of problems file")
 	timerFlag := flag.Int("time", 10, "Length of time that you want the quiz to run for")
+	shuffleFlag := flag.Bool("shuffle", false, "Option to shuffle quiz questions around")
 
 	flag.Parse()
 
@@ -25,6 +27,10 @@ func main() {
 
 	if err != nil {
 		panic(err)
+	}
+
+	if *shuffleFlag {
+		records = shuffle(records)
 	}
 
 	var enter string
@@ -69,4 +75,15 @@ func main() {
 	fmt.Fprintf(os.Stdout, "Quiz over. Right Answers: %d. Wrong Answers: %d. Total Score: %d/%d\n", 
 					numRight, len(records)-numRight, numRight, len(records))
 	fmt.Println("-----------------------------------------------------------------------------------")
+}
+
+func shuffle(records [][]string) [][]string {
+	length := len(records)
+
+	for i := range records {
+		j := rand.Intn(length)
+		records[i], records[j] = records[j], records[i]
+	}
+
+	return records
 }
