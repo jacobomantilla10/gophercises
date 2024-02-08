@@ -1,0 +1,8 @@
+- path: /arsenal
+  url: https://www.arsenal.com/
+- path: /chelsea
+  url: https://www.chelseafc.com/en
+- path: /wolves
+  url: https://www.wolves.co.uk/
+- path: /brighton
+  url: https://www.brightonandhovealbion.com/
