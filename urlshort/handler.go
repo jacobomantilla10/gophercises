@@ -1,7 +1,7 @@
 package urlshort
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
@@ -55,8 +55,6 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 		return nil, err
 	}
 	pathMap := buildMap(parsedYaml)
-	fmt.Println("First: ", pathMap["/urlshort"])
-	fmt.Println("Second: ", pathMap["/urlshort-final"])
 	return MapHandler(pathMap, fallback), nil
 }
 
@@ -64,15 +62,33 @@ func parseYAML(yml []byte) ([]redirects, error) {
 	var s []redirects
 	err := yaml.Unmarshal(yml, &s)
 	if err != nil {
-		fmt.Println("Unmarshalling YAML: ", err)
+		return nil, err
 	}
 	return s, nil
 }
 
-func buildMap(yml []redirects) map[string]string {
+func buildMap(r []redirects) map[string]string {
 	m := make(map[string]string)
-	for _, v := range yml {
+	for _, v := range r {
 		m[v.Path] = v.URL
 	}
 	return m
+}
+
+func JSONHandler(json []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	parsedJson, err := parseJSON(json)
+	if err != nil {
+		return nil, err
+	}
+	pathMap := buildMap(parsedJson)
+	return MapHandler(pathMap, fallback), nil
+}
+
+func parseJSON(jsn []byte) ([]redirects, error) {
+	var r []redirects
+	err := json.Unmarshal(jsn, &r)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }

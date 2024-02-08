@@ -34,8 +34,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	//Build the JSONHandler using the YAMLHandler as the
+	// fallback
+	json := `[
+		{
+		  "path": "/colombia",
+		  "url": "https://en.wikipedia.org/wiki/Colombia"
+		},
+		{
+		  "path": "/cali",
+		  "url": "https://en.wikipedia.org/wiki/Cali"
+		}
+	  ]`
+	jsonHandler, err := urlshort.JSONHandler([]byte(json), yamlHandler)
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", jsonHandler)
 }
 
 func defaultMux() *http.ServeMux {
