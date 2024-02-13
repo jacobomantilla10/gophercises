@@ -12,8 +12,10 @@ import (
 
 func main() {
 	var yamlFile = flag.String("yamlfile", "default.yaml", "Declare the name of the YAML file containing the paths")
+	var jsonFile = flag.String("jsonfile", "default.json", "Declare the name of the JSON file containing the paths")
 	flag.Parse()
 	fmt.Println(*yamlFile)
+	fmt.Println(*jsonFile)
 
 	mux := defaultMux()
 
@@ -26,9 +28,13 @@ func main() {
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml, err := os.ReadFile(filepath.Join("yaml-files", *yamlFile))
+	yaml, err := os.ReadFile(filepath.Join("yaml", *yamlFile))
 	if err != nil {
-		panic(err)
+		if os.IsNotExist(err) {
+			yaml, _ = os.ReadFile(filepath.Join("yaml", "default.yaml"))
+		} else {
+			panic(err)
+		}
 	}
 	yamlHandler, err := urlshort.YAMLHandler(yaml, mapHandler)
 	if err != nil {
@@ -36,17 +42,15 @@ func main() {
 	}
 
 	//Build the JSONHandler using the YAMLHandler as the
-	// fallback
-	json := `[
-		{
-		  "path": "/colombia",
-		  "url": "https://en.wikipedia.org/wiki/Colombia"
-		},
-		{
-		  "path": "/cali",
-		  "url": "https://en.wikipedia.org/wiki/Cali"
+	json, err := os.ReadFile(filepath.Join("json", *jsonFile))
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("Testing")
+			json, _ = os.ReadFile(filepath.Join("json", "default.json"))
+		} else {
+			panic(err)
 		}
-	  ]`
+	}
 	jsonHandler, err := urlshort.JSONHandler([]byte(json), yamlHandler)
 	if err != nil {
 		panic(err)
