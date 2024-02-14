@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/boltdb/bolt"
 	"gopkg.in/yaml.v2"
 )
 
@@ -91,4 +92,29 @@ func parseJSON(jsn []byte) ([]redirects, error) {
 		return nil, err
 	}
 	return r, nil
+}
+
+func BoltHandler(fallback http.Handler) (http.HandlerFunc, error) {
+	// get all of the key values from the database and put them into a map
+	db, err := bolt.Open("paths.db", 0600, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	pathMap := make(map[string]string)
+
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Paths"))
+
+		if err := b.ForEach(func(k, v []byte) error {
+			pathMap[string(k)] = string(v)
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return MapHandler(pathMap, fallback), nil
 }
