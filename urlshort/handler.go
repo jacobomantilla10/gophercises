@@ -2,7 +2,9 @@ package urlshort
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/boltdb/bolt"
 	"gopkg.in/yaml.v2"
@@ -53,7 +55,7 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 
 	parsedYaml, err := parseYAML(yml)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Parsing YAML: %s", err)
 	}
 	pathMap := buildMap(parsedYaml)
 	return MapHandler(pathMap, fallback), nil
@@ -63,7 +65,7 @@ func parseYAML(yml []byte) ([]redirects, error) {
 	var s []redirects
 	err := yaml.Unmarshal(yml, &s)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unmarshaling YAML: %s", err)
 	}
 	return s, nil
 }
@@ -79,7 +81,7 @@ func buildMap(r []redirects) map[string]string {
 func JSONHandler(json []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	parsedJson, err := parseJSON(json)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Parsing JSON: %s", err)
 	}
 	pathMap := buildMap(parsedJson)
 	return MapHandler(pathMap, fallback), nil
@@ -89,16 +91,16 @@ func parseJSON(jsn []byte) ([]redirects, error) {
 	var r []redirects
 	err := json.Unmarshal(jsn, &r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unmarshaling JSON: %s", err)
 	}
 	return r, nil
 }
 
 func BoltHandler(fallback http.Handler) (http.HandlerFunc, error) {
 	// get all of the key values from the database and put them into a map
-	db, err := bolt.Open("paths.db", 0600, nil)
+	db, err := bolt.Open(filepath.Join("..", "data", "paths.db"), 0600, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Opening db: %s", err)
 	}
 	defer db.Close()
 
@@ -111,7 +113,7 @@ func BoltHandler(fallback http.Handler) (http.HandlerFunc, error) {
 			pathMap[string(k)] = string(v)
 			return nil
 		}); err != nil {
-			return err
+			return fmt.Errorf("Getting db items: %s", err)
 		}
 		return nil
 	})

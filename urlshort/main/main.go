@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/boltdb/bolt"
 	"github.com/jacobomantilla10/gophercises/urlshort"
 )
 
@@ -19,11 +18,6 @@ func main() {
 	fmt.Println(*jsonFile)
 
 	mux := defaultMux()
-
-	_, err := SetupDB()
-	if err != nil {
-		panic(err)
-	}
 
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
@@ -64,6 +58,9 @@ func main() {
 
 	//Build the BoltdbHandler using the JSONHandler as the fallback
 	boltHandler, err := urlshort.BoltHandler(jsonHandler)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println("Starting the server on :8080")
 	http.ListenAndServe(":8080", boltHandler)
@@ -77,30 +74,4 @@ func defaultMux() *http.ServeMux {
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, world!")
-}
-
-// Creates the db buckets and returns the db
-func SetupDB() (*bolt.DB, error) {
-	db, err := bolt.Open("paths.db", 0600, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("Paths"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		err = b.Put([]byte("/houston"), []byte("https://www.houstontx.gov/"))
-		err = b.Put([]byte("/atlanta"), []byte("https://www.atlantaga.gov/"))
-		err = b.Put([]byte("/nashville"), []byte("https://www.visitmusiccity.com/"))
-		err = b.Put([]byte("/birmingham"), []byte("https://www.birminghamal.gov/"))
-		err = b.Put([]byte("/austin"), []byte("https://www.austintexas.org/"))
-		if err != nil {
-			return fmt.Errorf("put item: %s", err)
-		}
-		return nil
-	})
-	return db, nil
 }
