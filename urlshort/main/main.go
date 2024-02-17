@@ -14,8 +14,6 @@ func main() {
 	var yamlFile = flag.String("yamlfile", "default.yaml", "Declare the name of the YAML file containing the paths")
 	var jsonFile = flag.String("jsonfile", "default.json", "Declare the name of the JSON file containing the paths")
 	flag.Parse()
-	fmt.Println(*yamlFile)
-	fmt.Println(*jsonFile)
 
 	mux := defaultMux()
 
